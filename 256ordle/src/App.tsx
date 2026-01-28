@@ -18,6 +18,7 @@ function App() {
   });
   const [wordIndex, setWordIndex] = useState<number>(0);
   const [currentInput, setCurrentInput] = useState<string>('');
+  const [guessCount, setGuessCount] = useState<number>(0);
 
   const handleLetterInput = (letter: string) => {
     if (currentInput.length < 5) {
@@ -54,6 +55,7 @@ function App() {
 
           return { letters: newLetters };
         });
+        setGuessCount(guessCount + 1);
         setCurrentInput('');
       }
     }
@@ -114,7 +116,10 @@ function App() {
           >
             ←
           </button>
-          <div>Correct: 000 / 256</div>
+          <div style={{ display: 'flex', gap: '40px' }}>
+            <div>Guesses: {String(guessCount).padStart(3, '0')}</div>
+            <div>Correct: 000 / 256</div>
+          </div>
           <button
             onClick={handleNextBoard}
             style={{
