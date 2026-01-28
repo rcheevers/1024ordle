@@ -42,7 +42,7 @@ const KeyboardRow = ({word, guessedLetters, onLetterClick}: RowProps) => {
       }}>
         {word.split('').map((item: string, index: number) => (
           <div key={index} onClick={() => item.trim() && onLetterClick(item)}>
-            <Square letter={item} backgroundColor={item in guessedLetters ? 'grey' : 'white'} />
+            <Square letter={item} backgroundColor={guessedLetters.includes(item) ? 'grey' : 'white'} />
           </div>
         ))}
       </div>

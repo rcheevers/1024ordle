@@ -11,29 +11,37 @@ interface guessedLettersProps {
 }
 
 const Board = ({word, guessedLetters, currentInput}: BoardProps) => {
+  const green1 = guessedLetters.letters[1].includes(word[0]) ? word[0] : null;
+  const green2 = guessedLetters.letters[2].includes(word[1]) ? word[1] : null;
+  const green3 = guessedLetters.letters[3].includes(word[2]) ? word[2] : null;
+  const green4 = guessedLetters.letters[4].includes(word[3]) ? word[3] : null;
+  const green5 = guessedLetters.letters[5].includes(word[4]) ? word[4] : null;
+
+  const allGreens = [green1, green2, green3, green4, green5].filter(g => g !== null);
+
   var column1: ColumnProps = {
-    greenLetter: guessedLetters.letters[1].includes(word[0]) ? word[0] : null,
-    yellowLetters: guessedLetters.letters[1].filter((char: string) => word.includes(char) && char !== word[0]),
+    greenLetter: green1,
+    yellowLetters: guessedLetters.letters[1].filter((char: string) => word.includes(char) && char !== word[0] && !allGreens.includes(char)),
     currentInputLetter: currentInput[0] || null,
   }
   var column2: ColumnProps = {
-    greenLetter: guessedLetters.letters[2].includes(word[1]) ? word[1] : null,
-    yellowLetters: guessedLetters.letters[2].filter((char: string) => word.includes(char) && char !== word[1]),
+    greenLetter: green2,
+    yellowLetters: guessedLetters.letters[2].filter((char: string) => word.includes(char) && char !== word[1] && !allGreens.includes(char)),
     currentInputLetter: currentInput[1] || null,
   }
   var column3: ColumnProps = {
-    greenLetter: guessedLetters.letters[3].includes(word[2]) ? word[2] : null,
-    yellowLetters: guessedLetters.letters[3].filter((char: string) => word.includes(char) && char !== word[2]),
+    greenLetter: green3,
+    yellowLetters: guessedLetters.letters[3].filter((char: string) => word.includes(char) && char !== word[2] && !allGreens.includes(char)),
     currentInputLetter: currentInput[2] || null,
   }
   var column4: ColumnProps = {
-    greenLetter: guessedLetters.letters[4].includes(word[3]) ? word[3] : null,
-    yellowLetters: guessedLetters.letters[4].filter((char: string) => word.includes(char) && char !== word[3]),
+    greenLetter: green4,
+    yellowLetters: guessedLetters.letters[4].filter((char: string) => word.includes(char) && char !== word[3] && !allGreens.includes(char)),
     currentInputLetter: currentInput[3] || null,
   }
   var column5: ColumnProps = {
-    greenLetter: guessedLetters.letters[5].includes(word[4]) ? word[4] : null,
-    yellowLetters: guessedLetters.letters[5].filter((char: string) => word.includes(char) && char !== word[4]),
+    greenLetter: green5,
+    yellowLetters: guessedLetters.letters[5].filter((char: string) => word.includes(char) && char !== word[4] && !allGreens.includes(char)),
     currentInputLetter: currentInput[4] || null,
   }
 

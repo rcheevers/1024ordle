@@ -67,6 +67,10 @@ function App() {
         handleEnter();
       } else if (key === 'backspace') {
         handleBackspace();
+      } else if (key === 'arrowleft') {
+        handlePreviousBoard();
+      } else if (key === 'arrowright') {
+        handleNextBoard();
       } else if (key.length === 1 && key >= 'a' && key <= 'z') {
         handleLetterInput(key);
       }
@@ -74,16 +78,56 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentInput]);
+  }, [currentInput, wordIndex]);
+
+  const handlePreviousBoard = () => {
+    setWordIndex(wordIndex === 0 ? 255 : wordIndex - 1);
+  };
+
+  const handleNextBoard = () => {
+    setWordIndex(wordIndex === 255 ? 0 : wordIndex + 1);
+  };
 
   return (
     <div>
       <div style={{
         display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '20px'
       }}>
-        <Board word={'hello'} guessedLetters={guessedLetters} currentInput={currentInput} />
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '40px',
+          fontSize: '24px',
+          fontWeight: 'bold'
+        }}>
+          <button
+            onClick={handlePreviousBoard}
+            style={{
+              fontSize: '48px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            ←
+          </button>
+          <div>Correct: 000 / 256</div>
+          <button
+            onClick={handleNextBoard}
+            style={{
+              fontSize: '48px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer'
+            }}
+          >
+            →
+          </button>
+        </div>
+        <Board word={tempWords[wordIndex]} guessedLetters={guessedLetters} currentInput={currentInput} />
       </div>
       <Keyboard guessedLetters={guessedLetters} onLetterClick={handleLetterInput} />
     </div>
