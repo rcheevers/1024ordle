@@ -17,7 +17,7 @@ function Home({ onStartGame }: HomeProps) {
         fontWeight: 'bold',
         margin: 0
       }}>
-        512ordle
+        1024ordle
       </h1>
       <button
         onClick={onStartGame}

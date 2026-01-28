@@ -8,16 +8,22 @@ interface guessedLettersProps {
   letters: [string[], string[], string[], string[], string[], string[]];
 }
 
+interface OrdlePageProps {
+  wordList: string[];
+}
+
 const tempWords = tempWordsFile.trim().split('\n').map(word => word.trim());
 const words = wordsFile.trim().split('\n').map(word => word.trim());
 
-function OrdlePage() {
+function OrdlePage({ wordList }: OrdlePageProps) {
   const [guessedLetters, setGuessedLetters] = useState<guessedLettersProps>({
     letters: [[], [], [], [], [], []]
   });
   const [wordIndex, setWordIndex] = useState<number>(0);
   const [currentInput, setCurrentInput] = useState<string>('');
   const [guessCount, setGuessCount] = useState<number>(0);
+  const [currentWordList, setCurrentWordList] = useState<string[]>(wordList);
+  const [correctCount, setCorrectCount] = useState<number>(0);
 
   const handleLetterInput = (letter: string) => {
     if (currentInput.length < 5) {
@@ -55,6 +61,24 @@ function OrdlePage() {
           return { letters: newLetters };
         });
         setGuessCount(guessCount + 1);
+
+        // Check if the guessed word is anywhere in the word list
+        const foundIndex = currentWordList.indexOf(currentInput);
+        if (foundIndex !== -1) {
+          setCurrentWordList(prev => {
+            const newList = [...prev];
+            newList.splice(foundIndex, 1);
+            return newList;
+          });
+          setCorrectCount(prev => prev + 1);
+          // Adjust wordIndex if the removed word was before or at current position
+          if (foundIndex < wordIndex) {
+            setWordIndex(wordIndex - 1);
+          } else if (foundIndex === wordIndex && wordIndex >= currentWordList.length - 1) {
+            setWordIndex(0);
+          }
+        }
+
         setCurrentInput('');
       }
     }
@@ -82,11 +106,11 @@ function OrdlePage() {
   }, [currentInput, wordIndex]);
 
   const handlePreviousBoard = () => {
-    setWordIndex(wordIndex === 0 ? 511 : wordIndex - 1);
+    setWordIndex(wordIndex === 0 ? currentWordList.length - 1 : wordIndex - 1);
   };
 
   const handleNextBoard = () => {
-    setWordIndex(wordIndex === 511 ? 0 : wordIndex + 1);
+    setWordIndex(wordIndex === currentWordList.length - 1 ? 0 : wordIndex + 1);
   };
 
   return (
@@ -116,8 +140,8 @@ function OrdlePage() {
             ←
           </button>
           <div style={{ display: 'flex', gap: '40px' }}>
-            <div>Guesses: {String(guessCount).padStart(3, '0')}</div>
-            <div>Correct: 000 / 512</div>
+            <div>Guesses: {String(guessCount).padStart(4, '0')}</div>
+            <div>Correct: {String(correctCount).padStart(4, '0')} / 1024</div>
           </div>
           <button
             onClick={handleNextBoard}
@@ -131,7 +155,7 @@ function OrdlePage() {
             →
           </button>
         </div>
-        <Board word={tempWords[wordIndex]} guessedLetters={guessedLetters} currentInput={currentInput} />
+        <Board word={currentWordList[wordIndex]} guessedLetters={guessedLetters} currentInput={currentInput} />
       </div>
       <Keyboard guessedLetters={guessedLetters} onLetterClick={handleLetterInput} />
     </div>
