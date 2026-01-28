@@ -24,6 +24,8 @@ function OrdlePage({ wordList }: OrdlePageProps) {
   const [guessCount, setGuessCount] = useState<number>(0);
   const [currentWordList, setCurrentWordList] = useState<string[]>(wordList);
   const [correctCount, setCorrectCount] = useState<number>(0);
+  const [showToast, setShowToast] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string>('');
 
   const handleLetterInput = (letter: string) => {
     if (currentInput.length < 5) {
@@ -71,6 +73,10 @@ function OrdlePage({ wordList }: OrdlePageProps) {
             return newList;
           });
           setCorrectCount(prev => prev + 1);
+          // Show toast notification
+          setToastMessage(`Correct! "${currentInput}" found!`);
+          setShowToast(true);
+          setTimeout(() => setShowToast(false), 2000);
           // Adjust wordIndex if the removed word was before or at current position
           if (foundIndex < wordIndex) {
             setWordIndex(wordIndex - 1);
@@ -115,6 +121,24 @@ function OrdlePage({ wordList }: OrdlePageProps) {
 
   return (
     <div>
+      {showToast && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          backgroundColor: '#6aaa64',
+          color: 'white',
+          padding: '16px 24px',
+          borderRadius: '8px',
+          fontSize: '18px',
+          fontWeight: 'bold',
+          zIndex: 1000,
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+        }}>
+          {toastMessage}
+        </div>
+      )}
       <div style={{
         display: 'flex',
         flexDirection: 'column',
