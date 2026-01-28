@@ -24,8 +24,15 @@ function OrdlePage({ wordList }: OrdlePageProps) {
   const [guessCount, setGuessCount] = useState<number>(0);
   const [currentWordList, setCurrentWordList] = useState<string[]>(wordList);
   const [correctCount, setCorrectCount] = useState<number>(0);
-  const [showToast, setShowToast] = useState<boolean>(false);
-  const [toastMessage, setToastMessage] = useState<string>('');
+  const [toasts, setToasts] = useState<Array<{id: number, message: string}>>([]);
+
+  const addToast = (message: string) => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev, { id, message }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 2000);
+  };
 
   const handleLetterInput = (letter: string) => {
     if (currentInput.length < 5) {
@@ -74,9 +81,7 @@ function OrdlePage({ wordList }: OrdlePageProps) {
           });
           setCorrectCount(prev => prev + 1);
           // Show toast notification
-          setToastMessage(`Correct! "${currentInput}" found!`);
-          setShowToast(true);
-          setTimeout(() => setShowToast(false), 2000);
+          addToast(`Correct! "${currentInput}" found!`);
           // Adjust wordIndex if the removed word was before or at current position
           if (foundIndex < wordIndex) {
             setWordIndex(wordIndex - 1);
@@ -84,6 +89,51 @@ function OrdlePage({ wordList }: OrdlePageProps) {
             setWordIndex(0);
           }
         }
+
+        // After updating guessedLetters, check for any words that are fully solved
+        setTimeout(() => {
+          const wordsToRemove: string[] = [];
+          currentWordList.forEach((word) => {
+            const allPositionsKnown =
+              guessedLetters.letters[1].includes(word[0]) &&
+              guessedLetters.letters[2].includes(word[1]) &&
+              guessedLetters.letters[3].includes(word[2]) &&
+              guessedLetters.letters[4].includes(word[3]) &&
+              guessedLetters.letters[5].includes(word[4]);
+
+            if (allPositionsKnown && word !== currentInput) {
+              wordsToRemove.push(word);
+            }
+          });
+
+          if (wordsToRemove.length > 0) {
+            setCurrentWordList(prevList => {
+              let newList = [...prevList];
+              let indexAdjustment = 0;
+              wordsToRemove.forEach(word => {
+                const idx = newList.indexOf(word);
+                if (idx !== -1) {
+                  newList.splice(idx, 1);
+                  if (idx < wordIndex) {
+                    indexAdjustment++;
+                  }
+                }
+              });
+              if (indexAdjustment > 0) {
+                setWordIndex(wordIndex - indexAdjustment);
+              }
+              return newList;
+            });
+            setCorrectCount(prevCount => prevCount + wordsToRemove.length);
+            setGuessCount(prevCount => prevCount + wordsToRemove.length);
+            // Show individual toast for each auto-solved word
+            wordsToRemove.forEach((word, index) => {
+              setTimeout(() => {
+                addToast(`Auto-solved: "${word}"!`);
+              }, index * 2000); // Stagger toasts by 2000ms so they appear one at a time
+            });
+          }
+        }, 100);
 
         setCurrentInput('');
       }
@@ -121,24 +171,31 @@ function OrdlePage({ wordList }: OrdlePageProps) {
 
   return (
     <div>
-      {showToast && (
-        <div style={{
-          position: 'fixed',
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          backgroundColor: '#6aaa64',
-          color: 'white',
-          padding: '16px 24px',
-          borderRadius: '8px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          zIndex: 1000,
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
-        }}>
-          {toastMessage}
-        </div>
-      )}
+      <div style={{
+        position: 'fixed',
+        top: '20px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        alignItems: 'center'
+      }}>
+        {toasts.map(toast => (
+          <div key={toast.id} style={{
+            backgroundColor: '#6aaa64',
+            color: 'white',
+            padding: '16px 24px',
+            borderRadius: '8px',
+            fontSize: '18px',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}>
+            {toast.message}
+          </div>
+        ))}
+      </div>
       <div style={{
         display: 'flex',
         flexDirection: 'column',
