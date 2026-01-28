@@ -6,9 +6,10 @@ interface guessedLettersProps {
 
 interface KeyboardProps {
   guessedLetters: guessedLettersProps;
+  onLetterClick: (letter: string) => void;
 }
 
-const Keyboard = ({guessedLetters}: KeyboardProps) => {
+const Keyboard = ({guessedLetters, onLetterClick}: KeyboardProps) => {
 
   return (
     <div style={{
@@ -16,9 +17,9 @@ const Keyboard = ({guessedLetters}: KeyboardProps) => {
       flexDirection: 'column',
       justifyContent: 'flex-start',
     }}>
-      <KeyboardRow word={"qwertyuiop"} guessedLetters={guessedLetters.letters[0]} />
-      <KeyboardRow word={"asdfghjkl "} guessedLetters={guessedLetters.letters[0]} />
-      <KeyboardRow word={" zxcvbnm  "} guessedLetters={guessedLetters.letters[0]} />
+      <KeyboardRow word={"qwertyuiop"} guessedLetters={guessedLetters.letters[0]} onLetterClick={onLetterClick} />
+      <KeyboardRow word={"asdfghjkl "} guessedLetters={guessedLetters.letters[0]} onLetterClick={onLetterClick} />
+      <KeyboardRow word={" zxcvbnm  "} guessedLetters={guessedLetters.letters[0]} onLetterClick={onLetterClick} />
     </div>
   )
 }
@@ -26,19 +27,24 @@ const Keyboard = ({guessedLetters}: KeyboardProps) => {
 interface RowProps {
   word: string;
   guessedLetters: string[];
+  onLetterClick: (letter: string) => void;
 }
 
-const KeyboardRow = ({word, guessedLetters}: RowProps) => {
+const KeyboardRow = ({word, guessedLetters, onLetterClick}: RowProps) => {
 
   return (
       <div style={{
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'flex-start',
-        paddingTop: 5, 
+        paddingTop: 5,
         paddingBottom: 5
       }}>
-        {word.split('').map((item: string) => <Square letter={item} backgroundColor={item in guessedLetters ? 'grey' : 'white'} />)}
+        {word.split('').map((item: string, index: number) => (
+          <div key={index} onClick={() => item.trim() && onLetterClick(item)}>
+            <Square letter={item} backgroundColor={item in guessedLetters ? 'grey' : 'white'} />
+          </div>
+        ))}
       </div>
   )
 }
