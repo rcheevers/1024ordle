@@ -40,6 +40,21 @@ function Home({ onStartGame }: HomeProps) {
           <li>Words with all 5 positions known are automatically solved</li>
           <li>Boards are sorted by most known letters (green + yellow)</li>
         </ul>
+        <p><strong>Understanding the board (this is different from regular Wordle!):</strong></p>
+        <ul style={{ marginTop: '10px', marginBottom: '20px' }}>
+          <li>Each board shows <strong>5 vertical columns</strong>, one for each letter position</li>
+          <li>Each column has <strong>6 rows</strong>:
+            <ul style={{ marginLeft: '20px', marginTop: '5px' }}>
+              <li><strong>Row 1 (green):</strong> The correct letter if you've guessed it in this position</li>
+              <li><strong>Rows 2-5 (yellow):</strong> Letters you've guessed that are in the word but wrong position</li>
+              <li><strong>Row 6 (bottom):</strong> Your current typed letter (darker border)</li>
+            </ul>
+          </li>
+          <li>Empty white squares mean you haven't guessed any useful info for that slot yet</li>
+          <li>When a position has a green letter, that position is solved</li>
+          <li>Yellow letters tell you those letters exist in the word but belong elsewhere</li>
+          <li>Once all 5 positions show green, the word is automatically solved</li>
+        </ul>
         <p><strong>Controls:</strong></p>
         <ul style={{ marginTop: '10px', marginBottom: '20px' }}>
           <li><strong>Arrow Left/Right</strong> or click buttons to navigate between boards</li>
