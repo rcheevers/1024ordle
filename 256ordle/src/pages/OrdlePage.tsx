@@ -10,12 +10,13 @@ interface guessedLettersProps {
 
 interface OrdlePageProps {
   wordList: string[];
+  onWin: (guessCount: number) => void;
 }
 
 const tempWords = tempWordsFile.trim().split('\n').map(word => word.trim());
 const words = wordsFile.trim().split('\n').map(word => word.trim());
 
-function OrdlePage({ wordList }: OrdlePageProps) {
+function OrdlePage({ wordList, onWin }: OrdlePageProps) {
   const [guessedLetters, setGuessedLetters] = useState<guessedLettersProps>({
     letters: [[], [], [], [], [], []]
   });
@@ -52,6 +53,12 @@ function OrdlePage({ wordList }: OrdlePageProps) {
     }
   }, [toastQueue, isProcessingQueue]);
 
+  useEffect(() => {
+    if (currentWordList.length === 0) {
+      onWin(guessCount);
+    }
+  }, [currentWordList, guessCount, onWin]);
+
   const calculateScore = (word: string, guessedLetters: guessedLettersProps) => {
     let greens = 0;
     let yellows = 0;
@@ -63,18 +70,18 @@ function OrdlePage({ wordList }: OrdlePageProps) {
       }
     }
 
-    // Count yellows (unique letters in word that are guessed but not green anywhere)
+    // Count yellows (unique letters that are in the word, we've guessed, but aren't green)
     const uniqueLetters = new Set(word);
     uniqueLetters.forEach(letter => {
-      // Letter is yellow if:
-      // 1. It's in the general guessed letters list
-      // 2. It appears in the word
-      // 3. It's NOT green at any position in this word
+      // Check if letter is green at any position in this word
       const isGreen = word.split('').some((char, idx) =>
         char === letter && guessedLetters.letters[idx + 1].includes(letter)
       );
 
-      if (guessedLetters.letters[0].includes(letter) && !isGreen) {
+      // Check if we've guessed this letter
+      const isGuessed = guessedLetters.letters[0].includes(letter);
+
+      if (isGuessed && !isGreen) {
         yellows++;
       }
     });
@@ -87,13 +94,10 @@ function OrdlePage({ wordList }: OrdlePageProps) {
       const scoreA = calculateScore(a, guessedLetters);
       const scoreB = calculateScore(b, guessedLetters);
 
-      // Primary sort: greens descending
-      if (scoreA.greens !== scoreB.greens) {
-        return scoreB.greens - scoreA.greens;
-      }
-
-      // Secondary sort: yellows descending
-      return scoreB.yellows - scoreA.yellows;
+      // Sort by total known letters (greens + yellows) descending
+      const totalA = scoreA.greens + scoreA.yellows;
+      const totalB = scoreB.greens + scoreB.yellows;
+      return totalB - totalA;
     });
   };
 
@@ -290,7 +294,9 @@ function OrdlePage({ wordList }: OrdlePageProps) {
             →
           </button>
         </div>
-        <Board word={currentWordList[wordIndex]} guessedLetters={guessedLetters} currentInput={currentInput} />
+        {currentWordList.length > 0 && (
+          <Board word={currentWordList[wordIndex]} guessedLetters={guessedLetters} currentInput={currentInput} />
+        )}
       </div>
       <Keyboard guessedLetters={guessedLetters} onLetterClick={handleLetterInput} />
     </div>
