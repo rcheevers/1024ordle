@@ -34,6 +34,51 @@ function OrdlePage({ wordList }: OrdlePageProps) {
     }, 2000);
   };
 
+  const calculateScore = (word: string, guessedLetters: guessedLettersProps) => {
+    let greens = 0;
+    let yellows = 0;
+
+    // Count greens (exact position matches)
+    for (let i = 0; i < 5; i++) {
+      if (guessedLetters.letters[i + 1].includes(word[i])) {
+        greens++;
+      }
+    }
+
+    // Count yellows (unique letters in word that are guessed but not green anywhere)
+    const uniqueLetters = new Set(word);
+    uniqueLetters.forEach(letter => {
+      // Letter is yellow if:
+      // 1. It's in the general guessed letters list
+      // 2. It appears in the word
+      // 3. It's NOT green at any position in this word
+      const isGreen = word.split('').some((char, idx) =>
+        char === letter && guessedLetters.letters[idx + 1].includes(letter)
+      );
+
+      if (guessedLetters.letters[0].includes(letter) && !isGreen) {
+        yellows++;
+      }
+    });
+
+    return { greens, yellows };
+  };
+
+  const sortWordList = (wordList: string[], guessedLetters: guessedLettersProps) => {
+    return [...wordList].sort((a, b) => {
+      const scoreA = calculateScore(a, guessedLetters);
+      const scoreB = calculateScore(b, guessedLetters);
+
+      // Primary sort: greens descending
+      if (scoreA.greens !== scoreB.greens) {
+        return scoreB.greens - scoreA.greens;
+      }
+
+      // Secondary sort: yellows descending
+      return scoreB.yellows - scoreA.yellows;
+    });
+  };
+
   const handleLetterInput = (letter: string) => {
     if (currentInput.length < 5) {
       setCurrentInput(currentInput + letter);
@@ -47,93 +92,78 @@ function OrdlePage({ wordList }: OrdlePageProps) {
   const handleEnter = () => {
     if (currentInput.length === 5) {
       if (tempWords.includes(currentInput) || words.includes(currentInput)) {
-        setGuessedLetters(prev => {
-          const newLetters = [...prev.letters] as [string[], string[], string[], string[], string[], string[]];
+        const updatedLetters = [...guessedLetters.letters] as [string[], string[], string[], string[], string[], string[]];
 
-          // Add all 5 letters to the first list if not already in it
-          for (let i = 0; i < 5; i++) {
-            const letter = currentInput[i];
-            if (!newLetters[0].includes(letter)) {
-              newLetters[0].push(letter);
-            }
+        // Add all 5 letters to the first list if not already in it
+        for (let i = 0; i < 5; i++) {
+          const letter = currentInput[i];
+          if (!updatedLetters[0].includes(letter)) {
+            updatedLetters[0].push(letter);
           }
+        }
 
-          // Add letter to corresponding lists (1st letter to 2nd list, etc.)
-          for (let i = 0; i < 5; i++) {
-            const letter = currentInput[i];
-            const targetList = i + 1; // 0th letter goes to list[1], 1st to list[2], etc.
-            if (!newLetters[targetList].includes(letter)) {
-              newLetters[targetList].push(letter);
-            }
+        // Add letter to corresponding lists (1st letter to 2nd list, etc.)
+        for (let i = 0; i < 5; i++) {
+          const letter = currentInput[i];
+          const targetList = i + 1; // 0th letter goes to list[1], 1st to list[2], etc.
+          if (!updatedLetters[targetList].includes(letter)) {
+            updatedLetters[targetList].push(letter);
           }
+        }
 
-          return { letters: newLetters };
-        });
+        const newGuessedLetters = { letters: updatedLetters };
+        setGuessedLetters(newGuessedLetters);
         setGuessCount(guessCount + 1);
 
         // Check if the guessed word is anywhere in the word list
         const foundIndex = currentWordList.indexOf(currentInput);
-        if (foundIndex !== -1) {
-          setCurrentWordList(prev => {
-            const newList = [...prev];
-            newList.splice(foundIndex, 1);
-            return newList;
-          });
-          setCorrectCount(prev => prev + 1);
-          // Show toast notification
-          addToast(`Correct! "${currentInput}" found!`);
-          // Adjust wordIndex if the removed word was before or at current position
-          if (foundIndex < wordIndex) {
-            setWordIndex(wordIndex - 1);
-          } else if (foundIndex === wordIndex && wordIndex >= currentWordList.length - 1) {
-            setWordIndex(0);
+
+        // Check for auto-solved words
+        const wordsToRemove: string[] = [];
+        currentWordList.forEach((word) => {
+          const allPositionsKnown =
+            newGuessedLetters.letters[1].includes(word[0]) &&
+            newGuessedLetters.letters[2].includes(word[1]) &&
+            newGuessedLetters.letters[3].includes(word[2]) &&
+            newGuessedLetters.letters[4].includes(word[3]) &&
+            newGuessedLetters.letters[5].includes(word[4]);
+
+          if (allPositionsKnown && word !== currentInput) {
+            wordsToRemove.push(word);
           }
+        });
+
+        // Update word list: remove guessed word, auto-solved words, and sort
+        let updatedWordList = [...currentWordList];
+
+        if (foundIndex !== -1) {
+          updatedWordList.splice(foundIndex, 1);
+          setCorrectCount(prev => prev + 1);
+          addToast(`Correct! "${currentInput}" found!`);
         }
 
-        // After updating guessedLetters, check for any words that are fully solved
-        setTimeout(() => {
-          const wordsToRemove: string[] = [];
-          currentWordList.forEach((word) => {
-            const allPositionsKnown =
-              guessedLetters.letters[1].includes(word[0]) &&
-              guessedLetters.letters[2].includes(word[1]) &&
-              guessedLetters.letters[3].includes(word[2]) &&
-              guessedLetters.letters[4].includes(word[3]) &&
-              guessedLetters.letters[5].includes(word[4]);
-
-            if (allPositionsKnown && word !== currentInput) {
-              wordsToRemove.push(word);
-            }
-          });
-
-          if (wordsToRemove.length > 0) {
-            setCurrentWordList(prevList => {
-              let newList = [...prevList];
-              let indexAdjustment = 0;
-              wordsToRemove.forEach(word => {
-                const idx = newList.indexOf(word);
-                if (idx !== -1) {
-                  newList.splice(idx, 1);
-                  if (idx < wordIndex) {
-                    indexAdjustment++;
-                  }
-                }
-              });
-              if (indexAdjustment > 0) {
-                setWordIndex(wordIndex - indexAdjustment);
-              }
-              return newList;
-            });
-            setCorrectCount(prevCount => prevCount + wordsToRemove.length);
-            setGuessCount(prevCount => prevCount + wordsToRemove.length);
-            // Show individual toast for each auto-solved word
-            wordsToRemove.forEach((word, index) => {
-              setTimeout(() => {
-                addToast(`Auto-solved: "${word}"!`);
-              }, index * 2000); // Stagger toasts by 2000ms so they appear one at a time
-            });
+        wordsToRemove.forEach(word => {
+          const idx = updatedWordList.indexOf(word);
+          if (idx !== -1) {
+            updatedWordList.splice(idx, 1);
           }
-        }, 100);
+        });
+
+        // Sort the updated list
+        updatedWordList = sortWordList(updatedWordList, newGuessedLetters);
+        setCurrentWordList(updatedWordList);
+        setWordIndex(0); // Reset to first word after sorting
+
+        if (wordsToRemove.length > 0) {
+          setCorrectCount(prevCount => prevCount + wordsToRemove.length);
+          setGuessCount(prevCount => prevCount + wordsToRemove.length);
+          // Show individual toast for each auto-solved word
+          wordsToRemove.forEach((word, index) => {
+            setTimeout(() => {
+              addToast(`Auto-solved: "${word}"!`);
+            }, index * 2000); // Stagger toasts by 2000ms so they appear one at a time
+          });
+        }
 
         setCurrentInput('');
       }
