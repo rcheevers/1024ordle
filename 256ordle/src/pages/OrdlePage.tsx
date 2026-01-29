@@ -10,7 +10,7 @@ interface guessedLettersProps {
 
 interface OrdlePageProps {
   wordList: string[];
-  onWin: (guessCount: number) => void;
+  onWin: (guessCount: number, elapsedTime: number) => void;
 }
 
 const tempWords = tempWordsFile.trim().split('\n').map(word => word.trim());
@@ -29,6 +29,7 @@ function OrdlePage({ wordList, onWin }: OrdlePageProps) {
   const [toasts, setToasts] = useState<Array<{id: number, message: string}>>([]);
   const [toastQueue, setToastQueue] = useState<string[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState<boolean>(false);
+  const [startTime] = useState<number>(Date.now());
 
   const addToast = (message: string) => {
     const id = Date.now() + Math.random();
@@ -56,9 +57,10 @@ function OrdlePage({ wordList, onWin }: OrdlePageProps) {
 
   useEffect(() => {
     if (currentWordList.length === 0) {
-      onWin(guessCount);
+      const elapsedTime = Date.now() - startTime;
+      onWin(guessCount, elapsedTime);
     }
-  }, [currentWordList, guessCount, onWin]);
+  }, [currentWordList, guessCount, onWin, startTime]);
 
   const calculateScore = (word: string, guessedLetters: guessedLettersProps) => {
     let greens = 0;

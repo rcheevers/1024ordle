@@ -1,9 +1,25 @@
 interface WinPageProps {
   guessCount: number;
+  elapsedTime: number;
   onBackToHome: () => void;
 }
 
-function WinPage({ guessCount, onBackToHome }: WinPageProps) {
+function WinPage({ guessCount, elapsedTime, onBackToHome }: WinPageProps) {
+  const formatTime = (milliseconds: number) => {
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    } else if (minutes > 0) {
+      return `${minutes}:${String(seconds).padStart(2, '0')}`;
+    } else {
+      return `${seconds}s`;
+    }
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -23,9 +39,14 @@ function WinPage({ guessCount, onBackToHome }: WinPageProps) {
       </h1>
       <div style={{
         fontSize: '32px',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '20px'
       }}>
-        Total Guesses: {guessCount}
+        <div>Total Guesses: {guessCount}</div>
+        <div>Time: {formatTime(elapsedTime)}</div>
       </div>
       <button
         onClick={onBackToHome}

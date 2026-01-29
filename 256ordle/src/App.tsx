@@ -12,6 +12,7 @@ function App() {
   const [gameWordList, setGameWordList] = useState<string[]>([]);
   const [gameWon, setGameWon] = useState<boolean>(false);
   const [finalGuessCount, setFinalGuessCount] = useState<number>(0);
+  const [finalElapsedTime, setFinalElapsedTime] = useState<number>(0);
 
   const handleStartGame = (wordCount: number) => {
     // Generate random words from tempWords
@@ -22,8 +23,9 @@ function App() {
     setGameWon(false);
   };
 
-  const handleWin = (guessCount: number) => {
+  const handleWin = (guessCount: number, elapsedTime: number) => {
     setFinalGuessCount(guessCount);
+    setFinalElapsedTime(elapsedTime);
     setGameWon(true);
   };
 
@@ -37,7 +39,7 @@ function App() {
       {!gameStarted ? (
         <Home onStartGame={handleStartGame} />
       ) : gameWon ? (
-        <WinPage guessCount={finalGuessCount} onBackToHome={handleBackToHome} />
+        <WinPage guessCount={finalGuessCount} elapsedTime={finalElapsedTime} onBackToHome={handleBackToHome} />
       ) : (
         <OrdlePage wordList={gameWordList} onWin={handleWin} />
       )}
