@@ -25,6 +25,8 @@ function OrdlePage({ wordList }: OrdlePageProps) {
   const [currentWordList, setCurrentWordList] = useState<string[]>(wordList);
   const [correctCount, setCorrectCount] = useState<number>(0);
   const [toasts, setToasts] = useState<Array<{id: number, message: string}>>([]);
+  const [toastQueue, setToastQueue] = useState<string[]>([]);
+  const [isProcessingQueue, setIsProcessingQueue] = useState<boolean>(false);
 
   const addToast = (message: string) => {
     const id = Date.now() + Math.random();
@@ -33,6 +35,22 @@ function OrdlePage({ wordList }: OrdlePageProps) {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 2000);
   };
+
+  const addToQueue = (messages: string[]) => {
+    setToastQueue(prev => [...prev, ...messages]);
+  };
+
+  useEffect(() => {
+    if (toastQueue.length > 0 && !isProcessingQueue) {
+      setIsProcessingQueue(true);
+      const [nextMessage, ...rest] = toastQueue;
+      setToastQueue(rest);
+      addToast(nextMessage);
+      setTimeout(() => {
+        setIsProcessingQueue(false);
+      }, 2000);
+    }
+  }, [toastQueue, isProcessingQueue]);
 
   const calculateScore = (word: string, guessedLetters: guessedLettersProps) => {
     let greens = 0;
@@ -136,10 +154,13 @@ function OrdlePage({ wordList }: OrdlePageProps) {
         // Update word list: remove guessed word, auto-solved words, and sort
         let updatedWordList = [...currentWordList];
 
+        // Build list of toast messages
+        const toastMessages: string[] = [];
+
         if (foundIndex !== -1) {
           updatedWordList.splice(foundIndex, 1);
           setCorrectCount(prev => prev + 1);
-          addToast(`Correct! "${currentInput}" found!`);
+          toastMessages.push(`Correct! "${currentInput}" found!`);
         }
 
         wordsToRemove.forEach(word => {
@@ -157,12 +178,15 @@ function OrdlePage({ wordList }: OrdlePageProps) {
         if (wordsToRemove.length > 0) {
           setCorrectCount(prevCount => prevCount + wordsToRemove.length);
           setGuessCount(prevCount => prevCount + wordsToRemove.length);
-          // Show individual toast for each auto-solved word
-          wordsToRemove.forEach((word, index) => {
-            setTimeout(() => {
-              addToast(`Auto-solved: "${word}"!`);
-            }, index * 2000); // Stagger toasts by 2000ms so they appear one at a time
+          // Add auto-solved words to toast messages
+          wordsToRemove.forEach(word => {
+            toastMessages.push(`Auto-solved: "${word}"!`);
           });
+        }
+
+        // Add all messages to the queue at once
+        if (toastMessages.length > 0) {
+          addToQueue(toastMessages);
         }
 
         setCurrentInput('');
