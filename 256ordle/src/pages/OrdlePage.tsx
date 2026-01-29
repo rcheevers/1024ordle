@@ -25,6 +25,7 @@ function OrdlePage({ wordList, onWin }: OrdlePageProps) {
   const [guessCount, setGuessCount] = useState<number>(0);
   const [currentWordList, setCurrentWordList] = useState<string[]>(wordList);
   const [correctCount, setCorrectCount] = useState<number>(0);
+  const totalWords = wordList.length;
   const [toasts, setToasts] = useState<Array<{id: number, message: string}>>([]);
   const [toastQueue, setToastQueue] = useState<string[]>([]);
   const [isProcessingQueue, setIsProcessingQueue] = useState<boolean>(false);
@@ -280,7 +281,7 @@ function OrdlePage({ wordList, onWin }: OrdlePageProps) {
           </button>
           <div style={{ display: 'flex', gap: '40px' }}>
             <div>Guesses: {String(guessCount).padStart(4, '0')}</div>
-            <div>Correct: {String(correctCount).padStart(4, '0')} / 1024</div>
+            <div>Correct: {String(correctCount).padStart(String(totalWords).length, '0')} / {totalWords}</div>
           </div>
           <button
             onClick={handleNextBoard}

@@ -1,8 +1,9 @@
 interface WinPageProps {
   guessCount: number;
+  onBackToHome: () => void;
 }
 
-function WinPage({ guessCount }: WinPageProps) {
+function WinPage({ guessCount, onBackToHome }: WinPageProps) {
   return (
     <div style={{
       display: 'flex',
@@ -26,6 +27,21 @@ function WinPage({ guessCount }: WinPageProps) {
       }}>
         Total Guesses: {guessCount}
       </div>
+      <button
+        onClick={onBackToHome}
+        style={{
+          fontSize: '24px',
+          padding: '15px 30px',
+          cursor: 'pointer',
+          backgroundColor: '#6aaa64',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          fontWeight: 'bold'
+        }}
+      >
+        Back to Home
+      </button>
     </div>
   );
 }
